@@ -50,6 +50,20 @@ func (q *Queue[T])Dequeue()(T, bool){
 	return removedItem,true
 }
 
+func(q *Queue[T])Size() int{
+	q.mu.Lock()
+	defer q.mu.Unlock()
+
+	return len(q.data)
+}
+
+func(q *Queue[T])IsEmpty() bool{
+	q.mu.Lock()
+	defer q.mu.Unlock()
+
+	return len(q.data) == 0
+}
+
 
 func (q *Queue[T])PrintQueue() (string,error){
 
