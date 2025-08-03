@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"runtime"
 	"time"
 
 	"github.com/anthonymartz17/distributed-task-runner/internal/domain"
@@ -11,6 +12,8 @@ import (
 )
 
 func main(){
+
+	fmt.Println(runtime.NumCPU(),"runtime")
 q:= queue.NewQueue[*domain.Task]()
 
 payload:= "test of first method"
