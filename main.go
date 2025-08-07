@@ -1,6 +1,7 @@
 package main
 
 import (
+<<<<<<< HEAD
 	"encoding/json"
 	"fmt"
 	"runtime"
@@ -45,4 +46,12 @@ fmt.Println(string(removedTask))
 
 
 // fmt.Println(q.PrintQueue())
+=======
+	"github.com/anthonymartz17/distributed-task-runner/internal/server"
+)
+
+func main(){
+ 
+	server.StartHTTPServer()
+>>>>>>> main
 }
