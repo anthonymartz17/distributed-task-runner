@@ -46,7 +46,7 @@ func(wp *WorkerPool) Start(){
 				case <- wp.ctx.Done():
 					return
 				case task:= <- wp.taskCh:
-					res:= wp.processTask(task)
+					res:= wp.processTask(task,wp.ctx)
 					wp.store.Set(res.TaskId,res)
 				}
 			}
@@ -113,13 +113,13 @@ func(wp *WorkerPool) HandleTasks(w http.ResponseWriter,req *http.Request){
 	
 }
 
-func (wp *WorkerPool) processTask(task *domain.Task) *domain.Result {
+func (wp *WorkerPool) processTask(task *domain.Task,ctx context.Context) *domain.Result {
    
 	switch task.Type{
 	case "word_count":
-		return HandleWordCount(task)
+		return HandleWordCount(task,ctx)
 	case "reverse_array_int":
-		return HandleReverseArrayInt(task)
+		return HandleReverseArrayInt(task,ctx)
 
 	default:
 	 return &domain.Result{

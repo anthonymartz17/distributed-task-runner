@@ -1,6 +1,7 @@
 package workerpool
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"time"
@@ -8,9 +9,9 @@ import (
 	"github.com/anthonymartz17/distributed-task-runner/internal/domain"
 )
 
-func HandleWordCount(task *domain.Task) *domain.Result{
+func HandleWordCount(task *domain.Task,ctx context.Context) *domain.Result{
   var text string
-
+	
 	if err:= json.Unmarshal(task.Payload,&text); err != nil{
 
 		return&domain.Result{
@@ -19,8 +20,23 @@ func HandleWordCount(task *domain.Task) *domain.Result{
 			CompletedAt: time.Now(),
 		}
 	}
+  words:=  strings.Fields(text)
+  var count int64  
 
-	count:= len(strings.Fields(text))
+	for i:= 0; i < len(words); i++{
+    
+		select{
+		case <- ctx.Done():
+			return&domain.Result{
+				TaskId: task.Id,
+				Error: ctx.Err().Error(),
+				CompletedAt: time.Now(),
+			}
+
+		default:
+			count++
+		}
+	}
 
 	return&domain.Result{
 		TaskId: task.Id,
@@ -30,7 +46,7 @@ func HandleWordCount(task *domain.Task) *domain.Result{
 
 }
 
-func HandleReverseArrayInt(task *domain.Task) *domain.Result{
+func HandleReverseArrayInt(task *domain.Task, ctx context.Context) *domain.Result{
  
 	var result []int64
 
@@ -46,11 +62,21 @@ func HandleReverseArrayInt(task *domain.Task) *domain.Result{
 	r:= len(result) - 1
 
 	for l < r{
-   temp:= result[l]
-	 result[l] =  result[r]
-	 result[r] = temp
-	 l++
-	 r--
+
+   select{
+	 case <- ctx.Done():
+		return&domain.Result{
+			TaskId: task.Id,
+			Error: ctx.Err().Error(),
+			CompletedAt: time.Now(),
+		}
+	default:
+		temp:= result[l]
+		result[l] =  result[r]
+		result[r] = temp
+		l++
+		r--
+	}
 	}
 
 	return&domain.Result{
