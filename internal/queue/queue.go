@@ -3,45 +3,47 @@ package queue
 import (
 	"encoding/json"
 	"sync"
+
+	"github.com/anthonymartz17/distributed-task-runner/internal/domain"
 )
 
 // Queue is a generic thread-safe FIFO queue backed by a slice
-type Queue [T comparable] struct{
- data []T
+type Queue  struct{
+ data [] *domain.Task
  mu sync.Mutex
 }
 
-// QueueInterface defines the methods for the generic thread-safe FIFO queue
-type QueueInterface[T comparable] interface{
-	Enqueue(T) 
-	Dequeue() (T, bool)
+// TaskQueueer defines the methods for the generic thread-safe FIFO queue
+
+type TaskQueueer interface{
+	Enqueue(*domain.Task) 
+	Dequeue() (*domain.Task, bool)
   Size() int
   IsEmpty() bool
 }
 
 
-func NewQueue[T comparable]()*Queue[T]{
-  return &Queue[T]{
-		data: []T{},
+func NewQueue()*Queue{
+  return &Queue{
+		data: []*domain.Task{},
 	}
 }
 
 
 //Enqueue adds an item to the queue
-func (q *Queue[T])Enqueue(task T){
+func (q *Queue)Enqueue(task *domain.Task){
   q.mu.Lock()
 	defer q.mu.Unlock()
 	q.data = append(q.data,task)
 }
 //Dequeue removes and returns first item in line from queue
-func (q *Queue[T])Dequeue()(T, bool){
-  var zeroValOf T
+func (q *Queue)Dequeue()(*domain.Task, bool){
 
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	
 	if len(q.data) == 0{
-		return zeroValOf,false
+		return nil,false
 	}
 
 	removedItem:= q.data[0]
@@ -50,14 +52,14 @@ func (q *Queue[T])Dequeue()(T, bool){
 	return removedItem,true
 }
 
-func(q *Queue[T])Size() int{
+func(q *Queue)Size() int{
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
 	return len(q.data)
 }
 
-func(q *Queue[T])IsEmpty() bool{
+func(q *Queue)IsEmpty() bool{
 	q.mu.Lock()
 	defer q.mu.Unlock()
 
@@ -65,7 +67,7 @@ func(q *Queue[T])IsEmpty() bool{
 }
 
 
-func (q *Queue[T])PrintQueue() (string,error){
+func (q *Queue)PrintQueue() (string,error){
 
 	q.mu.Lock()
 	defer q.mu.Unlock()
