@@ -62,11 +62,13 @@ func HandleReverseArrayInt(task *domain.Task, ctx context.Context) (*domain.Resu
 		r--
 	}
 	}
+	
 
-	return&domain.Result{
+	return &domain.Result{
 		TaskId: task.Id,
 		Result: result,
 		CompletedAt: time.Now(),
 	},nil
 }
+
 
