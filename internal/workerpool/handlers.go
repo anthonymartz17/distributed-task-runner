@@ -3,22 +3,18 @@ package workerpool
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"strings"
 	"time"
 
 	"github.com/anthonymartz17/distributed-task-runner/internal/domain"
 )
 
-func HandleWordCount(task *domain.Task,ctx context.Context) *domain.Result{
+func HandleWordCount(task *domain.Task,ctx context.Context) (*domain.Result,error){
   var text string
 	
 	if err:= json.Unmarshal(task.Payload,&text); err != nil{
-
-		return&domain.Result{
-			TaskId: task.Id,
-			Error: err.Error(),
-			CompletedAt: time.Now(),
-		}
+		return nil,err
 	}
   words:=  strings.Fields(text)
   var count int64  
@@ -27,11 +23,7 @@ func HandleWordCount(task *domain.Task,ctx context.Context) *domain.Result{
     
 		select{
 		case <- ctx.Done():
-			return&domain.Result{
-				TaskId: task.Id,
-				Error: ctx.Err().Error(),
-				CompletedAt: time.Now(),
-			}
+			return nil, errors.New("process canceled")
 
 		default:
 			count++
@@ -42,20 +34,16 @@ func HandleWordCount(task *domain.Task,ctx context.Context) *domain.Result{
 		TaskId: task.Id,
 		Result: count,
 		CompletedAt: time.Now(),
-	}
+	},nil
 
 }
 
-func HandleReverseArrayInt(task *domain.Task, ctx context.Context) *domain.Result{
+func HandleReverseArrayInt(task *domain.Task, ctx context.Context) (*domain.Result,error){
  
 	var result []int64
 
 	if err:= json.Unmarshal(task.Payload,&result); err != nil{
-		return&domain.Result{
-			TaskId: task.Id,
-			Error: err.Error(),
-			CompletedAt: time.Now(),
-		}
+		return  nil,err
 	}
 
 	l:= 0
@@ -65,11 +53,7 @@ func HandleReverseArrayInt(task *domain.Task, ctx context.Context) *domain.Resul
 
    select{
 	 case <- ctx.Done():
-		return&domain.Result{
-			TaskId: task.Id,
-			Error: ctx.Err().Error(),
-			CompletedAt: time.Now(),
-		}
+		return nil, errors.New("process canceled")
 	default:
 		temp:= result[l]
 		result[l] =  result[r]
@@ -78,11 +62,13 @@ func HandleReverseArrayInt(task *domain.Task, ctx context.Context) *domain.Resul
 		r--
 	}
 	}
+	
 
-	return&domain.Result{
+	return &domain.Result{
 		TaskId: task.Id,
 		Result: result,
 		CompletedAt: time.Now(),
-	}
+	},nil
 }
+
 

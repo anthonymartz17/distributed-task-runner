@@ -114,21 +114,56 @@ func(wp *WorkerPool) HandleTasks(w http.ResponseWriter,req *http.Request){
 }
 
 func (wp *WorkerPool) processTask(task *domain.Task,ctx context.Context) *domain.Result {
-   
-	switch task.Type{
-	case "word_count":
-		return HandleWordCount(task,ctx)
-	case "reverse_array_int":
-		return HandleReverseArrayInt(task,ctx)
 
-	default:
-	 return &domain.Result{
-		TaskId: task.Id,
-		Error: "unknown task type",
-		CompletedAt: time.Now(),
-
-	 }
-	}
 	
+	maxTries:= 3
+	handlers:= map[string]func(task *domain.Task,ctx context.Context) (*domain.Result,error) {
+		"word_count":HandleWordCount,
+		"reverse_array_int":HandleReverseArrayInt,
+	}
+
+	handler,ok:= handlers[task.Type]
+
+	if !ok{
+		return &domain.Result{
+			TaskId: task.Id,
+			Error: "unknown task type",
+			CompletedAt: time.Now(),
+	
+		 }
+	}
+ var lastError error
+
+	for attemp:= 1; attemp <= maxTries; attemp++{
+
+		select {
+		case <- ctx.Done():
+			return &domain.Result{
+				TaskId: task.Id,
+				Error: "process canceled",
+				CompletedAt: time.Now(),
+		
+			 }
+
+			default:
+				res,err:= handler(task,ctx)
+
+				if err == nil{
+					return res
+				}
+
+				lastError = err
+					
+
+				
+				}
+		}
+
+return &domain.Result{
+	TaskId: task.Id,
+	Error:lastError.Error(),
+	CompletedAt: time.Now(),
+
+ }
 
 }
